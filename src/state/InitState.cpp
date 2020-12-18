@@ -73,6 +73,14 @@ namespace ehb
         console.font = imageFont;
         console.resetCaret();
 
+        // TODO: remove this once the gui is in place
+        if (const std::string region = config.getString("region"); !region.empty())
+        {
+            log->info("Attempting load into region directly: {}", config.getString("region"));
+
+            gameStateMgr.request("RegionTestState");
+        }
+
         // TODO: go to the next state
         if (const std::string state = config.getString("state"); !state.empty())
         {
