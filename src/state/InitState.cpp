@@ -30,6 +30,9 @@ namespace ehb
         if (!fileSys.init(config))
         {
             // TODO: shut down the engine
+            leave();
+
+            return;
         }
 
         // setup the NNK system and register it with OSG
@@ -45,7 +48,7 @@ namespace ehb
             osgDB::Registry::instance()->addReaderWriter(new ReaderWriterASP(fileSys));
             osgDB::Registry::instance()->addReaderWriter(new ReaderWriterFont(fileSys));
             osgDB::Registry::instance()->addReaderWriter(new ReaderWriterSiegeNodeList(fileSys));
-            
+
         }
 
         contentDb.init(fileSys);
@@ -68,10 +71,15 @@ namespace ehb
         }
 
         // TODO: any other up front init (gui?) that needs to be done
-        auto options = new osgDB::Options(std::string("font=b_gui_fnt_12p_copperplate-light"));
-        osg::ref_ptr<ImageFont> imageFont = osgDB::readRefFile<ImageFont>("/ui/fonts/fonts.gas", options);
-        console.font = imageFont;
-        console.resetCaret();
+        if (auto imageFont = osgDB::readRefFile<ImageFont>("/ui/fonts/fonts.gas", new osgDB::Options(std::string("font=b_gui_fnt_12p_copperplate-light"))); imageFont != nullptr)
+        {
+            console.font = imageFont;
+            console.resetCaret();
+        }
+        else
+        {
+            log->error("failed to find font for the console. it's just a matter of time before a crash happens");
+        }
 
         // TODO: remove this once the gui is in place
         if (const std::string region = config.getString("region"); !region.empty())
