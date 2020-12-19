@@ -25,36 +25,28 @@ int main(int argc, char * argv[])
     */
     WritableConfig config(argc, argv);
 
-    // always initialize the console logger first
+    // after the configs are read in we can create a file sink and a stdout sink to print to
     std::vector<spdlog::sink_ptr> sinks = {
 
         std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
         std::make_shared<spdlog::sinks::basic_file_sink_mt>(config.getString("logs_path", "") + std::string("/log.log"), true)
     };
 
+    // register our global logger, we should probably deprecate this and not use it
     auto log = std::make_shared<spdlog::logger>("log", std::begin(sinks), std::end(sinks));
     spdlog::register_logger(log);
 
+    // print out config for debugging purposes
     config.dump();
 
-    bool hasBits = !config.getString("bits", "").empty();
     bool hasPath = !config.getString("ds-install-path", "").empty();
-    if (!hasBits) log->warn("No Bits directory detected.");
     if (!hasPath) log->warn("No DS Install path detected.");
-
-    // TOOD: remove this when the tank system is in place
-    if (!hasBits)
-    {
-        log->error("No Bits directory detected and OpenSiege currently requires it. Please pass the bits path with --bits");
-
-        return 0;
-    }
 
     // we can survive just on bits or just on the path 
     // but if we don't have either then there are no assets to load
-    if (!hasBits && !hasPath)
+    if (!hasPath)
     {
-        log->error("No Bits or DS Install Path detected. Please check you have the proper registry keys / steam / WINE configuration. You can also use the command line flag --ds-install path for manual setup.");
+        log->error("DS Install Path not detected. Please check you have the proper registry keys / steam / WINE configuration. You can also use the command line flag --ds-install path for manual setup.");
 
         return 0;
     }
